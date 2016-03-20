@@ -16,11 +16,18 @@ RUN pip install --upgrade google-api-python-client
 # Install Django
 RUN pip install django==1.9
 
+# Install Open Computer Vision python module, used for extracting stills from video
+RUN apt-get install -y python-opencv
+
 # Copy application to container (assumes code is in current directory)
-ADD mysite /mysite 
+ADD . /mysite 
 
 # Set the default directory where CMD will execute
 WORKDIR /mysite
+
+# This gets rid of the "libdc1394 error: Failed to initialize libdc1394" warning
+# Edit: Actually for some reason this command doesn’t take unless you run it from inside the container (after the image is built)
+RUN ln /dev/null /dev/raw1394
 
 # Start webserver
 CMD python manage.py runserver 0.0.0.0:8000
