@@ -1,3 +1,5 @@
+#Todo:
+#  1) In production set DEBUG = False and consider swapping out built-in django web server with more robust one
 """
 Django settings for mysite project.
 

@@ -12,11 +12,10 @@ def submit_vid(request):
         form = SubmissionForm(request.POST)
         # check whether it's valid:
         if form.is_valid():
-            # process the data in form.cleaned_data as required
-            # ...
-            # redirect to a new URL:
-            moderate(form.cleaned_data.get('gcs_uri'),5,form.cleaned_data.get('api_key'))
-            return HttpResponse("return this string")
+            # process the data in form.cleaned_data
+            moderate_results = moderate(form.cleaned_data.get('gcs_uri'),form.cleaned_data.get('sample_rate'),
+                     form.cleaned_data.get('api_key'))
+            return HttpResponse(moderate_results)
 
     # if a GET (or any other method) we'll create a blank form
     else:

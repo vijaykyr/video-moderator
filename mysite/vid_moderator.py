@@ -67,7 +67,7 @@ def moderate(file_name, sample_rate, APIKey):
   #format note: this has been tested with the mp4 video format ONLY     
   vidcap = cv2.VideoCapture(file_name)
   success,image = vidcap.read()
-  
+  html_response = ''
   
   while success: 
     
@@ -142,36 +142,36 @@ def moderate(file_name, sample_rate, APIKey):
         for response, img in zip(responses.get('responses'),base64_images):
          
           #print frame timestamp
-          print(str(img[0])+'sec')
+          html_response += ('<h3>'+str(img[0])+'sec</h3>')
           
           #process labels
-          print('\tLabels:'),
+          html_response += ('\tLabels:')
           if response.has_key('labelAnnotations'):
-            printEntityAnnotation(response.get('labelAnnotations'))
-          else: print('no labels identified')
+            html_response += printEntityAnnotation(response.get('labelAnnotations'))
+          else: html_response += ('no labels identified<br>')
           
           #process logos
-          print('\tLogos:'),
+          html_response += ('\tLogos:')
           if response.has_key('logoAnnotations'):
-            printEntityAnnotation(response.get('logoAnnotations'))
-          else: print('no logos identified')
+            html_response += printEntityAnnotation(response.get('logoAnnotations'))
+          else: html_response += ('no logos identified<br>')
           
           #process safe search
-          print('\tSafe Search:')
+          html_response += ('\tSafe Search:<br>')
           if response.has_key('safeSearchAnnotation'):
-            print('\t  Adult Content is '+
-              response.get('safeSearchAnnotation').get('adult'))
-            print('\t  Violent Content is '+
-              response.get('safeSearchAnnotation').get('violence'))
-          else: print('\t\tno safe search results')
+            html_response += ('\t  Adult Content is '+
+              response.get('safeSearchAnnotation').get('adult') + '<br>')
+            html_response += ('\t  Violent Content is '+
+              response.get('safeSearchAnnotation').get('violence') + '<br>')
+          else: html_response += ('\t\tno safe search results<br>')
           
           #process text (OCR-optical character recognition)
-          print('\tText:'),
+          html_response += ('\tText:')
           if response.has_key('textAnnotations'):
-            printEntityAnnotation(response.get('textAnnotations'))
-          else: print('no text identified') 
+            html_response += printEntityAnnotation(response.get('textAnnotations'))
+          else: html_response += ('no text identified<br>')
           
-      else: print('no response')
+      else: html_response += ('no response<br>')
       
       #reset for next batch
       batch_count = 0
@@ -182,18 +182,20 @@ def moderate(file_name, sample_rate, APIKey):
   os.remove('temp.jpg')
   if os.path.isfile('temp.mp4'): os.remove('temp.mp4')
 
+  return html_response
+
 def printEntityAnnotation(annotations):
   entities = ''
   for annotation in annotations:
     entities += annotation['description']+', '
   entities = entities[:-2] #trim trailing comma and space
   
-  #added this try/except because API was returning non-unicode text for OCR
+  #added this try/except because Vision API was returning non-unicode text for OCR
   try:
-    print(entities)
+    entities + '<br>'
   except UnicodeEncodeError as err:
-    print(err)
-  
+    return err
+  return entities + '<br>'
 if __name__ == '__main__':
   
   #configure command line options
