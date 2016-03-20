@@ -9,12 +9,14 @@ from vid_moderator import moderate
 def submit_vid(request):
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
-        form = SubmissionForm(request.POST)
+        form = SubmissionForm(request.POST, request.FILES)
         # check whether it's valid:
         if form.is_valid():
             # process the data in form.cleaned_data
-            moderate_results = moderate(form.cleaned_data.get('gcs_uri'),form.cleaned_data.get('sample_rate'),
-                     form.cleaned_data.get('api_key'))
+            moderate_results = moderate(request.FILES.get('upload'),form.cleaned_data.get('sample_rate'),
+                    form.cleaned_data.get('api_key'))
+            #moderate_results = moderate(form.cleaned_data.get('gcs_uri'),form.cleaned_data.get('sample_rate'),
+            #         form.cleaned_data.get('api_key'))
             return HttpResponse(moderate_results)
 
     # if a GET (or any other method) we'll create a blank form

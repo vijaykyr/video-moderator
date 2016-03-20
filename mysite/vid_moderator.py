@@ -6,6 +6,7 @@ import re
 
 from apiclient.discovery import build
 from oauth2client.client import GoogleCredentials
+from django.core.files.uploadedfile import UploadedFile
 from timer import Timer
 
 # Author: reddyv@
@@ -43,8 +44,8 @@ def moderate(file_name, sample_rate, APIKey):
   frame = 0
   batch_count = 0
   base64_images = [] 
-  
-  if file_name.lower().startswith('gs://'): #download file from gcs
+
+  if isinstance(file_name,str): #download file from gcs
     #get application default credentials (specified during gcloud init)
     credentials = GoogleCredentials.get_application_default()
 
@@ -61,11 +62,15 @@ def moderate(file_name, sample_rate, APIKey):
     #execute request and save response to disk
     with open('temp.mp4','w') as file:
       file.write(req.execute())
-      file_name = 'temp.mp4'
-    
+
+  elif isinstance(file_name,UploadedFile): #write file to disk in chunks
+    with open('temp.mp4', 'wb+') as file:
+      for chunk in file_name.chunks():
+        file.write(chunk)
+
   #grab first frame
   #format note: this has been tested with the mp4 video format ONLY     
-  vidcap = cv2.VideoCapture(file_name)
+  vidcap = cv2.VideoCapture('temp.mp4')
   success,image = vidcap.read()
   html_response = ''
   
