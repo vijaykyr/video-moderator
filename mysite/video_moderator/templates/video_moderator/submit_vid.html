@@ -1,9 +1,17 @@
 <html>
     <head>
-        <title>Ola's blog</title>
+
+        <title>Video Moderator</title>
+
     </head>
+
     <body>
-        <p>Hello Django!</p>
-        <p>It works!</p>
+
+    <form action="/" method="post">
+        {% csrf_token %}
+        {{ form|linebreaks }}
+        <input type="submit" value="Submit" />
+    </form>
+
     </body>
 </html>
