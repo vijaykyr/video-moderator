@@ -30,4 +30,4 @@ WORKDIR /mysite
 RUN ln /dev/null /dev/raw1394
 
 # Start webserver
-CMD python manage.py runserver 0.0.0.0:8000
+#CMD python manage.py runserver 0.0.0.0:8000

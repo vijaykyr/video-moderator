@@ -1,5 +1,6 @@
-#stop existing containers
+#clean existing containers
 docker stop $(docker ps -a -q)
+docker rm $(docker ps -a -q)
 
 docker build -t gcr.io/vijays-sandbox/vid-mod:v1 .
 
