@@ -9,9 +9,14 @@
 
     <form action="/" method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        {{ form|linebreaks }}
-        <input type="submit" value="Submit GCS" />
+        {{ local_form|linebreaks }}
         <input type="submit" value="Submit Local" />
+    </form>
+
+    <form action="/" method="post">
+        {% csrf_token %}
+        {{ gcs_form|linebreaks }}
+        <input type="submit" value="Submit GCS" />
     </form>
 
     </body>

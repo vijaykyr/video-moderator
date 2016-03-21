@@ -22,7 +22,7 @@ from timer import Timer
 #   the disk read/write time is still an order of magnitude less than the frame
 #   grabbing time (10ms vs 200ms), at least on SSD storage
 
-def moderate(file_name, sample_rate, APIKey):
+def moderate(video_file, sample_rate, APIKey):
   BATCH_LIMIT = 8 #number of images to send per API request. Documented limit
   # is 16 images per request but i've tested up to 150 per request with success
   
@@ -45,7 +45,7 @@ def moderate(file_name, sample_rate, APIKey):
   batch_count = 0
   base64_images = [] 
 
-  if isinstance(file_name,str): #download file from gcs
+  if isinstance(video_file, unicode): #download file from gcs
     #get application default credentials (specified during gcloud init)
     credentials = GoogleCredentials.get_application_default()
 
@@ -53,7 +53,7 @@ def moderate(file_name, sample_rate, APIKey):
     gcs_service = build('storage', 'v1', credentials=credentials)
 
     #extract GCS bucket and object from file name
-    re_match = re.match(r'gs://(.*?)/(.*)', file_name, re.I)
+    re_match = re.match(r'gs://(.*?)/(.*)', video_file, re.I)
     
     #'get_media' returns file contents while 'get' returns file metadata
     req = gcs_service.objects().get_media(bucket=re_match.group(1), 
@@ -63,9 +63,9 @@ def moderate(file_name, sample_rate, APIKey):
     with open('temp.mp4','w') as file:
       file.write(req.execute())
 
-  elif isinstance(file_name,UploadedFile): #write file to disk in chunks
+  elif isinstance(video_file, UploadedFile): #write file to disk in chunks
     with open('temp.mp4', 'wb+') as file:
-      for chunk in file_name.chunks():
+      for chunk in video_file.chunks():
         file.write(chunk)
 
   #grab first frame
