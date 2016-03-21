@@ -1,1 +1,1 @@
-# djangogirls
+# Django Video Moderator
