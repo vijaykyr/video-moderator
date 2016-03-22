@@ -12,7 +12,8 @@ From the same directory that contains the Dockerfile
 
 ###How to deploy on GKE
 1. Create GKE cluster
-2. Deploy pods to cluster
-`kubectl run video-moderator --image=gcr.io/PROJECT_ID/video-moderator:v1 --port=8000`
-3. Allow external traffic
+2. [Configure kubectl](https://cloud.google.com/container-engine/docs/before-you-begin#optional_set_gcloud_defaults)
+3. Deploy pods to cluster
+`kubectl run video-moderator --image=gcr.io/PROJECT_ID/video-moderator:v1 --port=8000 --replicas=N`
+4. Allow external traffic
 `kubectl expose rc video-moderator --type="LoadBalancer"`
