@@ -7,13 +7,13 @@ EXPOSE 8000
 # Update the sources list
 RUN apt-get update
 
-# Install python, pip and git
-RUN apt-get install -y python=2.7.5-5ubuntu3 python-pip=1.5.4-1ubuntu3
+# Install python, pip
+RUN apt-get install -y python2.7 python-pip
 
 # Install Google API python client
 RUN pip install --upgrade google-api-python-client
 
-# Install Django
+# Install Django, web framework
 RUN pip install django==1.9
 
 # Install Open Computer Vision python module, used for extracting stills from video
