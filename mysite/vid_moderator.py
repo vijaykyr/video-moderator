@@ -203,7 +203,7 @@ def moderate(video_file, sample_rate, APIKey, response_type=1):
 
   if response_type == 1: return load_testing_response + \
                                 'Total: ' + str(int((time.time() - timer_total) * 1000)) + 'ms <br>\n' + \
-                                'Host: ' + socket.gethostname() + '<br>\n.'
+                                'Pod: ' + socket.gethostname() + '<br>\n.'
   else: return detailed_response
 
 def printEntityAnnotation(annotations):
