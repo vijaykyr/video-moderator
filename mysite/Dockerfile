@@ -26,7 +26,7 @@ ADD . /mysite
 WORKDIR /mysite
 
 # This gets rid of the "libdc1394 error: Failed to initialize libdc1394" warning
-# Edit: Actually for some reason this command doesn’t take unless you run it from inside the container (after the image is built)
+# Edit: Figure out why this command doesn’t take unless you run it from inside the container
 RUN ln /dev/null /dev/raw1394
 
 #If running locally set application default credentials. If running in production you don't need this

@@ -46,7 +46,9 @@ def moderate(video_file, sample_rate, APIKey, response_type=1):
   position = 0
   frame = 0
   batch_count = 0
-  base64_images = [] 
+  base64_images = []
+  detailed_response = ''
+  load_testing_response = '.\n' #the '.' is because otherwise the newline is ignored by locust
 
   if isinstance(video_file, unicode): #download file from gcs
     #get application default credentials (specified during gcloud init)
@@ -63,8 +65,11 @@ def moderate(video_file, sample_rate, APIKey, response_type=1):
       object=re_match.group(2))
 
     #execute request and save response to disk
+    timer_gcs = time.time()
     with open('temp.mp4','w') as file:
       file.write(req.execute())
+    load_testing_response += 'Fetching GCS File: ' + str(
+      int((time.time() - timer_gcs) * 1000)) + 'ms <br><br>\n\n'
 
   elif isinstance(video_file, UploadedFile): #write file to disk in chunks
     with open('temp.mp4', 'wb+') as file:
@@ -75,8 +80,6 @@ def moderate(video_file, sample_rate, APIKey, response_type=1):
   #format note: this has been tested with the mp4 video format ONLY     
   vidcap = cv2.VideoCapture('temp.mp4')
   success,image = vidcap.read()
-  detailed_response = ''
-  load_testing_response = ''
   
   while success: 
     
@@ -101,7 +104,7 @@ def moderate(video_file, sample_rate, APIKey, response_type=1):
       #vicap.read() takes ~200ms per frame on macbook air
       #this is the performance bottleneck
       success,image = vidcap.read()
-    load_testing_response += '\nFrame Grabbing: '+str(int((time.time() - timer_batch_frame_grabbing) * 1000))+'ms <br>\n'
+    load_testing_response += 'Frame Grabbing: '+str(int((time.time() - timer_batch_frame_grabbing) * 1000))+'ms <br>\n'
     #send batch to vision API
     json_request = {'requests': []}
     for img in base64_images:
@@ -182,7 +185,7 @@ def moderate(video_file, sample_rate, APIKey, response_type=1):
 
     else: detailed_response += ('no response<br>')
     load_testing_response += 'Batch Total (' + str(batch_count) + ' frames): ' + \
-                                          str(int((time.time() - timer_batch_total) * 1000)) + 'ms <br>\n<br>\n'
+                                          str(int((time.time() - timer_batch_total) * 1000)) + 'ms <br><br>\n\n'
 
     #reset for next batch
     batch_count = 0
