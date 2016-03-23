@@ -11,19 +11,22 @@ from vid_moderator import moderate
 def submit_vid(request):
     if request.method == 'POST':
         #print(request.POST)
+        response_type = 1
         if 'upload' in request.POST or 'upload' in request.FILES: #Local Submission
             form = LocalSubmissionForm(request.POST, request.FILES)
             if form.is_valid():
+                if form.cleaned_data.get('response_type') == 'api': response_type = 2
                 return HttpResponse(moderate(request.FILES.get('upload'),form.cleaned_data.get('sample_rate'),
-                                                 form.cleaned_data.get('api_key')))
+                                                 form.cleaned_data.get('api_key'),response_type))
             else:
                 return render(request, 'video_moderator/submit_vid.html', {'local_form': form,
                                                                    'gcs_form': GCSSubmissionForm()})
         elif 'gcs_uri' in request.POST: #GCS Submission
             form = GCSSubmissionForm(request.POST)
             if form.is_valid():
-                return HttpResponse(moderate(form.cleaned_data.get('gcs_uri'),
-                                    form.cleaned_data.get('sample_rate'), form.cleaned_data.get('api_key')))
+                if form.cleaned_data.get('response_type') == 'api': response_type = 2
+                return HttpResponse(moderate(form.cleaned_data.get('gcs_uri'), form.cleaned_data.get('sample_rate'),
+                                                form.cleaned_data.get('api_key'),response_type))
             else:
                 return render(request, 'video_moderator/submit_vid.html', {'local_form': LocalSubmissionForm(),
                                                                    'gcs_form': form})

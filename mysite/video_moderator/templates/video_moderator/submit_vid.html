@@ -7,17 +7,25 @@
 
     <body>
 
-    <form action="/" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ local_form|linebreaks }}
-        <input type="submit" value="Submit Local" />
-    </form>
 
-    <form action="/" method="post">
-        {% csrf_token %}
-        {{ gcs_form|linebreaks }}
-        <input type="submit" value="Submit GCS" />
-    </form>
+        <form action="/" method="post" enctype="multipart/form-data">
+            <table>
+                {% csrf_token %}
+                {{local_form}}
+                <tr><td><input type="submit" value="Submit Local" /></td></tr>
+             </table>
+        </form>
+
+        <br><br>
+
+        <form action="/" method="post">
+             <table>
+                {% csrf_token %}
+                {{gcs_form}}
+                <tr><td><input type="submit" value="Submit GCS" /></td></tr>
+             </table>
+
+        </form>
 
     </body>
 </html>
