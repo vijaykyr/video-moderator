@@ -22,10 +22,7 @@ from django.core.files.uploadedfile import UploadedFile
 #   without having to write to disk first. Note this is lower priority because
 #   the disk read/write time is still an order of magnitude less than the frame
 #   grabbing time (10ms vs 200ms), at least on SSD storage
-#   4) Implement simple moderation_response: Return the highest adult content
-#   likelihood for any frame. If a frame is VERY_LIKELY pre-empt processing
-#   because you can't get higher. ALSO print pod and Node that responsed so you
-#   can verify the load is being distributed. Is this info in HTTP header?
+#   4) Allow passing feature set to analyze (logo,label, explicit, OCR) as parameter
 
 def moderate(video_file, sample_rate, APIKey, response_type=1):
   timer_total = time.time()
@@ -104,7 +101,7 @@ def moderate(video_file, sample_rate, APIKey, response_type=1):
       #vicap.read() takes ~200ms per frame on macbook air
       #this is the performance bottleneck
       success,image = vidcap.read()
-    load_testing_response += 'Frame Grabbing: '+str(int((time.time() - timer_batch_frame_grabbing) * 1000))+'ms \n<br>'
+    load_testing_response += '\nFrame Grabbing: '+str(int((time.time() - timer_batch_frame_grabbing) * 1000))+'ms <br>\n'
     #send batch to vision API
     json_request = {'requests': []}
     for img in base64_images:
@@ -142,7 +139,7 @@ def moderate(video_file, sample_rate, APIKey, response_type=1):
     # due to reduced latency. But relative differences should hold.
     timer_batch_api = time.time()
     responses = service_request.execute()
-    load_testing_response += 'API request: ' + str(int((time.time() - timer_batch_api) * 1000)) + 'ms \n<br>'
+    load_testing_response += 'API request: ' + str(int((time.time() - timer_batch_api) * 1000)) + 'ms <br>\n'
     #response format
     #{u'responses': [{u'labelAnnotations': [{u'score': 0.99651724, u'mid':
     # u'/m/01c4rd', u'description': u'beak'}, {u'score': 0.96588981, u'mid':
@@ -185,7 +182,7 @@ def moderate(video_file, sample_rate, APIKey, response_type=1):
 
     else: detailed_response += ('no response<br>')
     load_testing_response += 'Batch Total (' + str(batch_count) + ' frames): ' + \
-                                          str(int((time.time() - timer_batch_total) * 1000)) + 'ms \n\n<br><br>'
+                                          str(int((time.time() - timer_batch_total) * 1000)) + 'ms <br>\n<br>\n'
 
     #reset for next batch
     batch_count = 0
@@ -198,8 +195,8 @@ def moderate(video_file, sample_rate, APIKey, response_type=1):
 
 
   if response_type == 1: return load_testing_response + \
-                                'Total: ' + str(int((time.time() - timer_total) * 1000)) + 'ms \n<br>' + \
-                                'Host: ' + socket.gethostname() + '\n<br>'
+                                'Total: ' + str(int((time.time() - timer_total) * 1000)) + 'ms <br>\n' + \
+                                'Host: ' + socket.gethostname() + '<br>\n'
   else: return detailed_response
 
 def printEntityAnnotation(annotations):

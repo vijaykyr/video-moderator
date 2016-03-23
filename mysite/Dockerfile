@@ -29,5 +29,8 @@ WORKDIR /mysite
 # Edit: Actually for some reason this command doesn’t take unless you run it from inside the container (after the image is built)
 RUN ln /dev/null /dev/raw1394
 
+#If running locally set application default credentials. If running in production you don't need this
+ENV GOOGLE_APPLICATION_CREDENTIALS='/mysite/keys/975c65f89649.json'
+
 # Start webserver
 CMD python manage.py runserver 0.0.0.0:8000
