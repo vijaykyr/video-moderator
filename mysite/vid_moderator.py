@@ -5,6 +5,7 @@ import os
 import re
 import time
 import socket
+import uuid
 
 from apiclient.discovery import build
 from oauth2client.client import GoogleCredentials
@@ -49,6 +50,9 @@ def moderate(video_file, sample_rate, APIKey, response_type=1):
   base64_images = []
   detailed_response = ''
   load_testing_response = '.\n' #the '.' is because otherwise the newline is ignored by locust
+  unique_file_name = uuid.uuid4()
+  temp_mp4 = str(unique_file_name) + '.mp4'
+  temp_jpg = str(unique_file_name) + '.jpg'
 
   if isinstance(video_file, unicode): #download file from gcs
     #get application default credentials (specified during gcloud init)
@@ -66,19 +70,19 @@ def moderate(video_file, sample_rate, APIKey, response_type=1):
 
     #execute request and save response to disk
     timer_gcs = time.time()
-    with open('temp.mp4','w') as file:
+    with open(temp_mp4,'w') as file:
       file.write(req.execute())
     load_testing_response += 'Fetching GCS File: ' + str(
       int((time.time() - timer_gcs) * 1000)) + 'ms <br><br>\n\n'
 
   elif isinstance(video_file, UploadedFile): #write file to disk in chunks
-    with open('temp.mp4', 'wb+') as file:
+    with open(temp_mp4, 'wb+') as file:
       for chunk in video_file.chunks():
         file.write(chunk)
 
   #grab first frame
   #format note: this has been tested with the mp4 video format ONLY     
-  vidcap = cv2.VideoCapture('temp.mp4')
+  vidcap = cv2.VideoCapture(temp_mp4)
   success,image = vidcap.read()
   
   while success: 
@@ -89,8 +93,8 @@ def moderate(video_file, sample_rate, APIKey, response_type=1):
     while success and batch_count < BATCH_LIMIT:
 
       #convert frame to base64
-      cv2.imwrite('temp.jpg', image)
-      with open('temp.jpg','rb') as image:
+      cv2.imwrite(temp_jpg, image)
+      with open(temp_jpg,'rb') as image:
         base64_images.append((position/1000,base64.b64encode(image.read())))
 
 
@@ -193,13 +197,13 @@ def moderate(video_file, sample_rate, APIKey, response_type=1):
 
   
   #cleanup
-  os.remove('temp.jpg')
-  if os.path.isfile('temp.mp4'): os.remove('temp.mp4')
+  os.remove(temp_jpg)
+  if os.path.isfile(temp_mp4): os.remove(temp_mp4)
 
 
   if response_type == 1: return load_testing_response + \
                                 'Total: ' + str(int((time.time() - timer_total) * 1000)) + 'ms <br>\n' + \
-                                'Host: ' + socket.gethostname() + '<br>\n'
+                                'Host: ' + socket.gethostname() + '<br>\n.'
   else: return detailed_response
 
 def printEntityAnnotation(annotations):
