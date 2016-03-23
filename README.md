@@ -6,7 +6,7 @@ This README file is a work in progress. Instructions are not complete.
 A Django/Python app that processes mp4 videos, extracts still frames, and sends them to the Google Vision API
 for moderation.
 
-###How to deploy on Google Container Engine (GKE)
+####How to deploy on Google Container Engine (GKE)
 Note: Replace all references to 'PROJECT_ID' with your project ID before running commands
 
 ####Part 1: Build Docker image and push to Google Container Registry (GCR)

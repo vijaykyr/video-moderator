@@ -3,11 +3,12 @@ import base64
 import cv2
 import os
 import re
+import time
+import socket
 
 from apiclient.discovery import build
 from oauth2client.client import GoogleCredentials
 from django.core.files.uploadedfile import UploadedFile
-from timer import Timer
 
 # Author: reddyv@
 # Last Update: 03-13-2016
@@ -21,9 +22,14 @@ from timer import Timer
 #   without having to write to disk first. Note this is lower priority because
 #   the disk read/write time is still an order of magnitude less than the frame
 #   grabbing time (10ms vs 200ms), at least on SSD storage
+#   4) Implement simple moderation_response: Return the highest adult content
+#   likelihood for any frame. If a frame is VERY_LIKELY pre-empt processing
+#   because you can't get higher. ALSO print pod and Node that responsed so you
+#   can verify the load is being distributed. Is this info in HTTP header?
 
-def moderate(video_file, sample_rate, APIKey):
-  BATCH_LIMIT = 8 #number of images to send per API request. Documented limit
+def moderate(video_file, sample_rate, APIKey, response_type=1):
+  timer_total = time.time()
+  BATCH_LIMIT = 35 #number of images to send per API request. Documented limit
   # is 16 images per request but i've tested up to 150 per request with success
   
   #obtain service handle for vision API using API Key
@@ -72,122 +78,129 @@ def moderate(video_file, sample_rate, APIKey):
   #format note: this has been tested with the mp4 video format ONLY     
   vidcap = cv2.VideoCapture('temp.mp4')
   success,image = vidcap.read()
-  html_response = ''
+  detailed_response = ''
+  load_testing_response = ''
   
   while success: 
     
-    with Timer('Batch Total'):
-      
-      #read in frames one batch at a time
-      while success and batch_count < BATCH_LIMIT:
-      
-        #convert frame to base64
-        cv2.imwrite('temp.jpg', image) 
-        with open('temp.jpg','rb') as image:
-          base64_images.append((position/1000,base64.b64encode(image.read())))
-      
-        
-        #advance to next image
-        if sample_rate > 0: position = position+1000*sample_rate
-        else: position = -1 #terminate
-        frame += 1
-        batch_count += 1
-        vidcap.set(0,position)
-        
-        #vicap.read() takes ~200ms per frame on macbook air 
-        #this is the performance bottleneck
-        with Timer('Read frame'): success,image = vidcap.read()
-  
-      #send batch to vision API
-      json_request = {'requests': []}
-      for img in base64_images:
-        json_request['requests'].append(
-          {
-            'image': {
-              'content': img[1] #recall img is a tuple (timestamp, base64image)
-             },
-            'features': [
-             {
-              'type': 'SAFE_SEARCH_DETECTION',
-             },
-             {
-              'type': 'LABEL_DETECTION',
-              'maxResults': 3,
-             },
-             {
-              'type': 'LOGO_DETECTION',
-              'maxResults': 3,
-             },
-             {
-              'type': 'TEXT_DETECTION',
-              'maxResults': 3,
-             }
-             ] 
-          })
-      
-      service_request = service.images().annotate(body=json_request)
-      
-      #API performance
-      # tl;dr: the more you batch the better
-      #  1 frame batch takes ~1 sec
-      #  10 frame batch takes ~1.5 sec
-      #  100 frame batch takes ~4.0 sec
-      # Note these numbers should drop a bit when running the app from the cloud
-      # due to reduced latency. But relative differences should hold.
-      with Timer('API request'): responses = service_request.execute()
+    #read in frames one batch at a time
+    timer_batch_total = time.time()
+    timer_batch_frame_grabbing = time.time()
+    while success and batch_count < BATCH_LIMIT:
 
-      #response format
-      #{u'responses': [{u'labelAnnotations': [{u'score': 0.99651724, u'mid':
-      # u'/m/01c4rd', u'description': u'beak'}, {u'score': 0.96588981, u'mid':
-      # u'/m/015p6', u'description': u'bird'}, {u'score': 0.85704041, u'mid':
-      # u'/m/09686', u'description': u'vertebrate'}]}]}
+      #convert frame to base64
+      cv2.imwrite('temp.jpg', image)
+      with open('temp.jpg','rb') as image:
+        base64_images.append((position/1000,base64.b64encode(image.read())))
 
-      #process response and print results
-      if responses.has_key('responses'):
-        for response, img in zip(responses.get('responses'),base64_images):
-         
-          #print frame timestamp
-          html_response += ('<h3>'+str(img[0])+'sec</h3>')
-          
-          #process labels
-          html_response += ('\tLabels:')
-          if response.has_key('labelAnnotations'):
-            html_response += printEntityAnnotation(response.get('labelAnnotations'))
-          else: html_response += ('no labels identified<br>')
-          
-          #process logos
-          html_response += ('\tLogos:')
-          if response.has_key('logoAnnotations'):
-            html_response += printEntityAnnotation(response.get('logoAnnotations'))
-          else: html_response += ('no logos identified<br>')
-          
-          #process safe search
-          html_response += ('\tSafe Search:<br>')
-          if response.has_key('safeSearchAnnotation'):
-            html_response += ('\t  Adult Content is '+
-              response.get('safeSearchAnnotation').get('adult') + '<br>')
-            html_response += ('\t  Violent Content is '+
-              response.get('safeSearchAnnotation').get('violence') + '<br>')
-          else: html_response += ('\t\tno safe search results<br>')
-          
-          #process text (OCR-optical character recognition)
-          html_response += ('\tText:')
-          if response.has_key('textAnnotations'):
-            html_response += printEntityAnnotation(response.get('textAnnotations'))
-          else: html_response += ('no text identified<br>')
-          
-      else: html_response += ('no response<br>')
-      
-      #reset for next batch
-      batch_count = 0
-      base64_images = []
+
+      #advance to next image
+      if sample_rate > 0: position = position+1000*sample_rate
+      else: position = -1 #terminate
+      frame += 1
+      batch_count += 1
+      vidcap.set(0,position)
+
+      #vicap.read() takes ~200ms per frame on macbook air
+      #this is the performance bottleneck
+      success,image = vidcap.read()
+    load_testing_response += 'Frame Grabbing: '+str(int((time.time() - timer_batch_frame_grabbing) * 1000))+'ms \n<br>'
+    #send batch to vision API
+    json_request = {'requests': []}
+    for img in base64_images:
+      json_request['requests'].append(
+        {
+          'image': {
+            'content': img[1] #recall img is a tuple (timestamp, base64image)
+           },
+          'features': [
+           {
+            'type': 'SAFE_SEARCH_DETECTION',
+           },
+           {
+            'type': 'LABEL_DETECTION',
+            'maxResults': 3,
+           },
+           {
+            'type': 'LOGO_DETECTION',
+            'maxResults': 3,
+           },
+           {
+            'type': 'TEXT_DETECTION',
+            'maxResults': 3,
+           }
+           ]
+        })
+    service_request = service.images().annotate(body=json_request)
+
+    #API performance
+    # tl;dr: the more you batch the better
+    #  1 frame batch takes ~1 sec
+    #  10 frame batch takes ~1.5 sec
+    #  100 frame batch takes ~4.0 sec
+    # Note these numbers should drop a bit when running the app from the cloud
+    # due to reduced latency. But relative differences should hold.
+    timer_batch_api = time.time()
+    responses = service_request.execute()
+    load_testing_response += 'API request: ' + str(int((time.time() - timer_batch_api) * 1000)) + 'ms \n<br>'
+    #response format
+    #{u'responses': [{u'labelAnnotations': [{u'score': 0.99651724, u'mid':
+    # u'/m/01c4rd', u'description': u'beak'}, {u'score': 0.96588981, u'mid':
+    # u'/m/015p6', u'description': u'bird'}, {u'score': 0.85704041, u'mid':
+    # u'/m/09686', u'description': u'vertebrate'}]}]}
+
+    #process response and print results
+    if responses.has_key('responses'):
+      for response, img in zip(responses.get('responses'),base64_images):
+
+        #print frame timestamp
+        detailed_response += ('<h3>'+str(img[0])+'sec</h3>')
+
+        #process labels
+        detailed_response += ('\tLabels:')
+        if response.has_key('labelAnnotations'):
+          detailed_response += printEntityAnnotation(response.get('labelAnnotations'))
+        else: detailed_response += ('no labels identified<br>')
+
+        #process logos
+        detailed_response += ('\tLogos:')
+        if response.has_key('logoAnnotations'):
+          detailed_response += printEntityAnnotation(response.get('logoAnnotations'))
+        else: detailed_response += ('no logos identified<br>')
+
+        #process safe search
+        detailed_response += ('\tSafe Search:<br>')
+        if response.has_key('safeSearchAnnotation'):
+          detailed_response += ('\t  Adult Content is '+
+            response.get('safeSearchAnnotation').get('adult') + '<br>')
+          detailed_response += ('\t  Violent Content is '+
+            response.get('safeSearchAnnotation').get('violence') + '<br>')
+        else: detailed_response += ('\t\tno safe search results<br>')
+
+        #process text (OCR-optical character recognition)
+        detailed_response += ('\tText:')
+        if response.has_key('textAnnotations'):
+          detailed_response += printEntityAnnotation(response.get('textAnnotations'))
+        else: detailed_response += ('no text identified<br>')
+
+    else: detailed_response += ('no response<br>')
+    load_testing_response += 'Batch Total (' + str(batch_count) + ' frames): ' + \
+                                          str(int((time.time() - timer_batch_total) * 1000)) + 'ms \n\n<br><br>'
+
+    #reset for next batch
+    batch_count = 0
+    base64_images = []
 
   
   #cleanup
   os.remove('temp.jpg')
   if os.path.isfile('temp.mp4'): os.remove('temp.mp4')
 
-  return html_response
+
+  if response_type == 1: return load_testing_response + \
+                                'Total: ' + str(int((time.time() - timer_total) * 1000)) + 'ms \n<br>' + \
+                                'Host: ' + socket.gethostname() + '\n<br>'
+  else: return detailed_response
 
 def printEntityAnnotation(annotations):
   entities = ''
@@ -222,4 +235,4 @@ if __name__ == '__main__':
   args = parser.parse_args()
   
   #start execution
-  with Timer('Total'): moderate(args.file_name, args.samplerate, args.APIKey)
+  moderate(args.file_name, args.samplerate, args.APIKey)
