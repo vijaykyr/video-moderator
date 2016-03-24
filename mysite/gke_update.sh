@@ -3,7 +3,7 @@
 #Usage:
 # ./gke_update.sh version_number
 
-#build image
+#update image
 docker build -t gcr.io/vijays-sandbox/video-moderator:$1 .
 
 #push to gcr
