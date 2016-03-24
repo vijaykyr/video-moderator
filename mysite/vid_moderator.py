@@ -38,8 +38,8 @@ def moderate(video_file, sample_rate, APIKey, response_type=1):
    https://vision.googleapis.com/v1/images:annotate?alt=json returned "Project 
    has not activated the vision.googleapis.com API. Please enable the API for 
    project google.com:cloudsdktool (#32555940559).">"""
-   
-  service = build('vision', 'v1', 
+
+  service = build('vision', 'v1',
   discoveryServiceUrl='https://vision.googleapis.com/$discovery/rest?version=v1',
   developerKey=APIKey)
   

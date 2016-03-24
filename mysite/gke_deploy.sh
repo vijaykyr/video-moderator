@@ -12,7 +12,7 @@ gcloud container clusters create "video-moderator" --zone "us-central1-c" --mach
 gcloud container clusters get-credentials video-moderator
 
 #Deploy pods to cluster
-kubectl run video-moderator --image=gcr.io/vijays-sandbox/video-moderator:latest --port=8000 --replicas=5
+kubectl run video-moderator --image=gcr.io/vijays-sandbox/video-moderator:latest --port=80 --replicas=5
 
 #Allow external traffic
 kubectl expose rc video-moderator --type="LoadBalancer"

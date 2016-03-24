@@ -2,7 +2,7 @@
 FROM ubuntu
 
 # Expose port
-EXPOSE 8000
+EXPOSE 80
 
 # Update the sources list
 RUN apt-get update
@@ -33,4 +33,4 @@ RUN ln /dev/null /dev/raw1394
 ENV GOOGLE_APPLICATION_CREDENTIALS='/mysite/keys/975c65f89649.json'
 
 # Start webserver
-CMD python manage.py runserver 0.0.0.0:8000
+CMD python manage.py runserver 0.0.0.0:80

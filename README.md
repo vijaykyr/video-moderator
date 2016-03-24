@@ -17,8 +17,9 @@ Note: Replace all references to 'PROJECT_ID' with your project ID before running
 
 ####Part 2: Spin up GKE cluster and deploy pod(s)
 1. Create GKE cluster
+`gcloud container clusters create "video-moderator" --zone "us-central1-c"`
 2. Configure kubectl
-`gcloud container clusters get-credentials CLUSTER_NAME`
+`gcloud container clusters get-credentials video-moderator`
 3. Deploy pods to cluster
 `kubectl run video-moderator --image=gcr.io/PROJECT_ID/video-moderator:latest --port=8000 --replicas=1`
 4. Allow external traffic
@@ -26,9 +27,3 @@ Note: Replace all references to 'PROJECT_ID' with your project ID before running
 5. Determine external IP (this will take a minute to generate after the last command)
 `kubectl get service video-moderator`
 6. Paste <EXTERNAL_IP>:8000 into browser to access web app
-
-####Optional: Launch KubeUI to monitor node resource usage
-1. Get KubeUI url
-`kubectl cluster-info`
-2. Get password
-`kubectl config view`
