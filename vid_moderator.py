@@ -9,14 +9,14 @@ import uuid
 
 from apiclient.discovery import build
 from oauth2client.client import GoogleCredentials
-from django.core.files.uploadedfile import UploadedFile
+#from django.core.files.uploadedfile import UploadedFile
 
 # Author: reddyv@
-# Last Update: 03-13-2016
+# Last Update: 04-02-2016
 # Usage:
 #   python vid_moderator.py --help
 # Todo:
-#   1) Evaluate using ffmpeg instead of OpenCV. Can you get faster than 
+#   1) Evaluate using ffmpeg instead of OpenCV. Can you get faster than
 #   200ms/frame? This is the current performance bottleneck
 #   2) Figure out why application default credentials don't work for vision API
 #   3) See if you can convert the cv2 image format to base64 directly in memory 
@@ -24,6 +24,8 @@ from django.core.files.uploadedfile import UploadedFile
 #   the disk read/write time is still an order of magnitude less than the frame
 #   grabbing time (10ms vs 200ms), at least on SSD storage
 #   4) Allow passing feature set to analyze (logo,label, explicit, OCR) as parameter
+#   5) Replace django uploadFile with standard Python way. Then you can
+#   completely eliminate the django framework.
 
 def moderate(video_file, sample_rate, APIKey, response_type=1):
   timer_total = time.time()
@@ -75,10 +77,10 @@ def moderate(video_file, sample_rate, APIKey, response_type=1):
     load_testing_response += 'Fetching GCS File: ' + str(
       int((time.time() - timer_gcs) * 1000)) + 'ms <br><br>\n\n'
 
-  elif isinstance(video_file, UploadedFile): #write file to disk in chunks
-    with open(temp_mp4, 'wb+') as file:
-      for chunk in video_file.chunks():
-        file.write(chunk)
+  #elif isinstance(video_file, UploadedFile): #write file to disk in chunks
+  #  with open(temp_mp4, 'wb+') as file:
+  #    for chunk in video_file.chunks():
+  #      file.write(chunk)
 
   #grab first frame
   #format note: this has been tested with the mp4 video format ONLY     
