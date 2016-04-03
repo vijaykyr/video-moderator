@@ -4,11 +4,10 @@ FROM ubuntu
 # Expose port
 EXPOSE 80
 
-# Update the sources list
+# Install apt-get packages
 RUN apt-get update
 
-# Install python, pip
-RUN apt-get install -y python2.7 python-pip
+RUN apt-get install -y python2.7 python-pip 
 
 # Install Google API python client
 RUN pip install --upgrade google-api-python-client
