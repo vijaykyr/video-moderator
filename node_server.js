@@ -17,9 +17,10 @@ http.createServer(function (request, response) {
 console.log('Server running at http://127.0.0.1:8081/');
 
 //Run python script and print results
-child_process.exec('python vid_moderator.py',vidModeratorCB)
+child_process.exec('python vid_moderator.py test_video_files/birds.mp4 AIzaSyCPZJ3_hlLTcdMtkBEzXHXIuGkmNn1TeFc',vidModeratorCB)
 
 //vid_moderator.py callback function
 function vidModeratorCB(error, stdout, stderr) {
-    console.log(stderr);
+    if (error) console.error(error);
+    else console.log(stdout);
 }

@@ -27,7 +27,7 @@ from oauth2client.client import GoogleCredentials
 #   5) Replace django uploadFile with standard Python way. Then you can
 #   completely eliminate the django framework.
 
-def moderate(video_file, sample_rate, APIKey, response_type=1):
+def moderate(video_file, APIKey, sample_rate=5, response_type=1):
   timer_total = time.time()
   BATCH_LIMIT = 35 #number of images to send per API request. Documented limit
   # is 16 images per request but i've tested up to 150 per request with success
@@ -55,6 +55,7 @@ def moderate(video_file, sample_rate, APIKey, response_type=1):
   unique_file_name = uuid.uuid4()
   temp_mp4 = str(unique_file_name) + '.mp4'
   temp_jpg = str(unique_file_name) + '.jpg'
+  vidcap = ''
 
   if isinstance(video_file, unicode): #download file from gcs
     #get application default credentials (specified during gcloud init)
@@ -77,14 +78,17 @@ def moderate(video_file, sample_rate, APIKey, response_type=1):
     load_testing_response += 'Fetching GCS File: ' + str(
       int((time.time() - timer_gcs) * 1000)) + 'ms <br><br>\n\n'
 
-  #elif isinstance(video_file, UploadedFile): #write file to disk in chunks
+  #elif isinstance(video_file, UploadedFile): #file has been uploaded from web form
   #  with open(temp_mp4, 'wb+') as file:
   #    for chunk in video_file.chunks():
   #      file.write(chunk)
 
+  else: #file is local file
+    vidcap = cv2.VideoCapture(video_file)
+
   #grab first frame
   #format note: this has been tested with the mp4 video format ONLY     
-  vidcap = cv2.VideoCapture(temp_mp4)
+  if (not(vidcap)): vidcap = cv2.VideoCapture(temp_mp4)
   success,image = vidcap.read()
   
   while success: 
@@ -107,7 +111,7 @@ def moderate(video_file, sample_rate, APIKey, response_type=1):
       batch_count += 1
       vidcap.set(0,position)
 
-      #vicap.read() takes ~200ms per frame on macbook air
+      #vicap.read() takes ~200ms per frame on 2.2 GHz Intel Core i7
       #this is the performance bottleneck
       success,image = vidcap.read()
     load_testing_response += 'Frame Grabbing: '+str(int((time.time() - timer_batch_frame_grabbing) * 1000))+'ms <br>\n'
@@ -241,4 +245,4 @@ if __name__ == '__main__':
   args = parser.parse_args()
   
   #start execution
-  moderate(args.file_name, args.samplerate, args.APIKey)
+  print(moderate(args.file_name, args.APIKey, args.samplerate))
