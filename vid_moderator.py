@@ -50,8 +50,8 @@ def moderate(video_file, APIKey, sample_rate=5, response_type=1):
   frame = 0
   batch_count = 0
   base64_images = []
-  detailed_response = ''
-  load_testing_response = '.\n' #the '.' is because otherwise the newline is ignored by locust
+  frame_annotations = ''
+  performance_metrics = '.\n' #the '.' is because otherwise the newline is ignored by locust
   unique_file_name = uuid.uuid4()
   temp_mp4 = str(unique_file_name) + '.mp4'
   temp_jpg = str(unique_file_name) + '.jpg'
@@ -75,7 +75,7 @@ def moderate(video_file, APIKey, sample_rate=5, response_type=1):
     timer_gcs = time.time()
     with open(temp_mp4,'w') as file:
       file.write(req.execute())
-    load_testing_response += 'Fetching GCS File: ' + str(
+    performance_metrics += 'Fetching GCS File: ' + str(
       int((time.time() - timer_gcs) * 1000)) + 'ms <br><br>\n\n'
 
   #elif isinstance(video_file, UploadedFile): #file has been uploaded from web form
@@ -114,7 +114,7 @@ def moderate(video_file, APIKey, sample_rate=5, response_type=1):
       #vicap.read() takes ~200ms per frame on 2.2 GHz Intel Core i7
       #this is the performance bottleneck
       success,image = vidcap.read()
-    load_testing_response += 'Frame Grabbing: '+str(int((time.time() - timer_batch_frame_grabbing) * 1000))+'ms <br>\n'
+    performance_metrics += 'Frame Grabbing: '+str(int((time.time() - timer_batch_frame_grabbing) * 1000))+'ms <br>\n'
     #send batch to vision API
     json_request = {'requests': []}
     for img in base64_images:
@@ -152,7 +152,7 @@ def moderate(video_file, APIKey, sample_rate=5, response_type=1):
     # due to reduced latency. But relative differences should hold.
     timer_batch_api = time.time()
     responses = service_request.execute()
-    load_testing_response += 'API request: ' + str(int((time.time() - timer_batch_api) * 1000)) + 'ms <br>\n'
+    performance_metrics += 'API request: ' + str(int((time.time() - timer_batch_api) * 1000)) + 'ms <br>\n'
     #response format
     #{u'responses': [{u'labelAnnotations': [{u'score': 0.99651724, u'mid':
     # u'/m/01c4rd', u'description': u'beak'}, {u'score': 0.96588981, u'mid':
@@ -164,37 +164,37 @@ def moderate(video_file, APIKey, sample_rate=5, response_type=1):
       for response, img in zip(responses.get('responses'),base64_images):
 
         #print frame timestamp
-        detailed_response += ('<h3>'+str(img[0])+'sec</h3>')
+        frame_annotations += ('<h3>'+str(img[0])+'sec</h3>')
 
         #process labels
-        detailed_response += ('\tLabels:')
+        frame_annotations += ('\tLabels:')
         if response.has_key('labelAnnotations'):
-          detailed_response += printEntityAnnotation(response.get('labelAnnotations'))
-        else: detailed_response += ('no labels identified<br>')
+          frame_annotations += printEntityAnnotation(response.get('labelAnnotations'))
+        else: frame_annotations += ('no labels identified<br>')
 
         #process logos
-        detailed_response += ('\tLogos:')
+        frame_annotations += ('\tLogos:')
         if response.has_key('logoAnnotations'):
-          detailed_response += printEntityAnnotation(response.get('logoAnnotations'))
-        else: detailed_response += ('no logos identified<br>')
+          frame_annotations += printEntityAnnotation(response.get('logoAnnotations'))
+        else: frame_annotations += ('no logos identified<br>')
 
         #process safe search
-        detailed_response += ('\tSafe Search:<br>')
+        frame_annotations += ('\tSafe Search:<br>')
         if response.has_key('safeSearchAnnotation'):
-          detailed_response += ('\t  Adult Content is '+
+          frame_annotations += ('\t  Adult Content is '+
             response.get('safeSearchAnnotation').get('adult') + '<br>')
-          detailed_response += ('\t  Violent Content is '+
+          frame_annotations += ('\t  Violent Content is '+
             response.get('safeSearchAnnotation').get('violence') + '<br>')
-        else: detailed_response += ('\t\tno safe search results<br>')
+        else: frame_annotations += ('\t\tno safe search results<br>')
 
         #process text (OCR-optical character recognition)
-        detailed_response += ('\tText:')
+        frame_annotations += ('\tText:')
         if response.has_key('textAnnotations'):
-          detailed_response += printEntityAnnotation(response.get('textAnnotations'))
-        else: detailed_response += ('no text identified<br>')
+          frame_annotations += printEntityAnnotation(response.get('textAnnotations'))
+        else: frame_annotations += ('no text identified<br>')
 
-    else: detailed_response += ('no response<br>')
-    load_testing_response += 'Batch Total (' + str(batch_count) + ' frames): ' + \
+    else: frame_annotations += ('no response<br>')
+    performance_metrics += 'Batch Total (' + str(batch_count) + ' frames): ' + \
                                           str(int((time.time() - timer_batch_total) * 1000)) + 'ms <br><br>\n\n'
 
     #reset for next batch
@@ -207,23 +207,19 @@ def moderate(video_file, APIKey, sample_rate=5, response_type=1):
   if os.path.isfile(temp_mp4): os.remove(temp_mp4)
 
 
-  if response_type == 1: return load_testing_response + \
+  if response_type == 1: return performance_metrics + \
                                 'Total: ' + str(int((time.time() - timer_total) * 1000)) + 'ms <br>\n' + \
                                 'Pod: ' + socket.gethostname() + '<br>\n.'
-  else: return detailed_response
+  else: return frame_annotations
 
 def printEntityAnnotation(annotations):
   entities = ''
   for annotation in annotations:
     entities += annotation['description']+', '
   entities = entities[:-2] #trim trailing comma and space
-  
-  #added this try/except because Vision API was returning non-unicode text for OCR
-  try:
-    entities + '<br>'
-  except UnicodeEncodeError as err:
-    return err
-  return entities + '<br>'
+  return entities + '<br>' # may need to add .encode(utf-8)
+
+
 if __name__ == '__main__':
   
   #configure command line options
@@ -240,9 +236,13 @@ if __name__ == '__main__':
     '-s','--sample-rate',dest='samplerate', default=5, type=int, 
     help=('The rate at which stills should be sampled from the '
     'video. Default is 5 (one frame per 5 seconds).'))
+  parser.add_argument(
+    '-r','--response-type',dest='responsetype', default=1, type=int,
+    help=('1 for performance metrics, 2 for frame annotations. Default is 1.')
+  )
   
   #read in command line arguments
   args = parser.parse_args()
   
   #start execution
-  print(moderate(args.file_name, args.APIKey, args.samplerate))
+  print(moderate(args.file_name, args.APIKey, args.samplerate, args.responsetype).encode('utf-8'))
