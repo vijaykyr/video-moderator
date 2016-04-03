@@ -5,6 +5,7 @@
 //load required modules
 var express = require('express'); //npm module: web framework
 var multer = require('multer'); //npm module: parses multipart form data
+var fs = require('fs');
 const child_process = require('child_process');
 
 //initialize
@@ -21,12 +22,14 @@ express.post('/', upload.single('video_file'), function (req, res) {
   //ToDo: add form validation
 
   //asynchronously call python vid_moderator
-  child_process.exec('python vid_moderator.py ' + req.file.filename + ' ' + req.body.api_key
+  child_process.exec('python vid_moderator.py ' + req.file.path + ' ' + req.body.api_key
     + ' --sample-rate=' + req.body.sample_rate + ' --response-type=' + req.body.response_type,
         function (error, stdout, stderr) {
             if (error) console.error(error);
             else {
                res.send(stdout);
+               //cleanup
+               fs.unlinkSync(req.file.path)
             }
 
         })

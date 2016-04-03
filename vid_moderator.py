@@ -78,11 +78,6 @@ def moderate(video_file, APIKey, sample_rate=5, response_type=1):
     performance_metrics += 'Fetching GCS File: ' + str(
       int((time.time() - timer_gcs) * 1000)) + 'ms <br><br>\n\n'
 
-  #elif isinstance(video_file, UploadedFile): #file has been uploaded from web form
-  #  with open(temp_mp4, 'wb+') as file:
-  #    for chunk in video_file.chunks():
-  #      file.write(chunk)
-
   else: #file is local file
     vidcap = cv2.VideoCapture(video_file)
 
