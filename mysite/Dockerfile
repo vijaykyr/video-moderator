@@ -33,3 +33,4 @@ ENV GOOGLE_APPLICATION_CREDENTIALS='/mysite/keys/975c65f89649.json'
 
 # Start webserver
 CMD python manage.py runserver 0.0.0.0:80
+
