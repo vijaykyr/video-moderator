@@ -11,8 +11,8 @@ RUN apt-get install --fix-missing -y python-opencv
 # Install Google API python client
 RUN pip install --upgrade google-api-python-client
 
-#Copy local resources (todo: change to github)
-COPY . /video_moderator
+#Copy local resources
+RUN git clone https://github.com/vijaykyr/video-moderator.git /video_moderator
 
 #Change working directory
 WORKDIR /video_moderator

@@ -7,9 +7,9 @@ A web service that processes mp4 videos, extracts still frames, and sends them t
 for moderation.
 
 ###Key files
-1. vid_moderator.py
+1. vid_moderator.py   
 The main processing script that does the video extraction and interacts with the Google APIs (Vision and GCS)
-2. express_server.js
+2. express_server.js   
 A webserver with a simple html form front end that wraps vid_moderator.py. Videos submitted  
 through the form are handed off to vid_moderator.py for asyncronous non-blocking processing. You can also
 submit processing requests API style with an HTTP GET request.
