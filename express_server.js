@@ -1,5 +1,10 @@
 /*
- * express_server.js wraps vid_moderator.py in a Node.js web server
+ * Author: reddyv@
+ * Last Updated: 04-07-2016
+ * Usage: node express_server.js
+ * ToDo:
+ *  1) Add form validation
+ *
 */
 
 //load required modules
@@ -14,13 +19,10 @@ var upload = multer({ dest: __dirname, limits: {fileSize: 1e8} }); //limit file 
 
 //define routes
 express.get('/', function (req, res) {
-  res.sendFile(__dirname + '/html/form.html');
-  //adding __dirname allow you to launch server from any dir
+  res.sendFile(__dirname + '/html/form.html'); //__dirname is a nodejs global representing the current directory
 });
 
 express.post('/', upload.single('video_file'), function (req, res) {
-  //ToDo: add form validation
-
   //asynchronously call python vid_moderator
   child_process.exec('python vid_moderator.py ' + req.file.path + ' ' + req.body.api_key
     + ' --sample-rate=' + req.body.sample_rate + ' --response-type=' + req.body.response_type,

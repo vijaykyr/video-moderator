@@ -9,13 +9,12 @@ import uuid
 
 from apiclient.discovery import build
 from oauth2client.client import GoogleCredentials
-#from django.core.files.uploadedfile import UploadedFile
 
 # Author: reddyv@
 # Last Update: 04-02-2016
 # Usage:
 #   python vid_moderator.py --help
-# Todo:
+# ToDo:
 #   1) Evaluate using ffmpeg instead of OpenCV. Can you get faster than
 #   200ms/frame? This is the current performance bottleneck
 #   2) Figure out why application default credentials don't work for vision API

@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
-#clean existing containers
-docker stop $(docker ps -a -q)
-docker rm $(docker ps -a -q)
-
+#build image
 docker build -t gcr.io/vijays-sandbox/video-moderator:latest .
-
-docker run -itp 80:80 gcr.io/vijays-sandbox/video-moderator:latest
+#create new container from image, bind host port 80 to container port 8081
+docker run --rm -itp 80:8081 --name=video_moderator gcr.io/vijays-sandbox/video-moderator:latest
 
