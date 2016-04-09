@@ -1,0 +1,37 @@
+<html>
+<body>
+	
+<h1>Video Moderator</h1>
+
+<form method="post" enctype="multipart/form-data">
+	<fieldset>
+		<table>
+			<tr>
+				<td>MP4 Video:</td>
+				<td><input type="file" name="video_file" accept=".mp4" /></td>
+			</tr>
+			<tr>
+				<td>API Key:</td>
+				<td><input type="text" name="api_key" /></td>
+			</tr>
+			<tr>
+				<td>Sample Rate:</td>
+				<td><input type="text" name="sample_rate" value="1"/></td>
+			</tr>
+			<tr>
+				<td>
+					<select name="response_type">
+					  <option value="2">Frame Annotations</option>
+					  <option value="1">Performance Metrics</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td><input type="submit" value="Submit Video" /></td>
+			</tr>
+		</table>
+	</fieldset>
+</form>
+
+</body>
+</html>

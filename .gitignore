@@ -1,6 +1,0 @@
-*.pyc
-__pycache__
-djangoenv
-db.sqlite3
-/static
-.DS_Store
