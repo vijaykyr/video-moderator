@@ -5,9 +5,10 @@ A web service that processes mp4 videos, extracts still frames, and sends them t
 for moderation.
 
 ####How to deploy on Google Container Engine (GKE)
-1. Install Docker. You will need this to build the docker image
-2. Edit orchestration/gke_deploy.sh to reference your GCP project
-3. Run `orchestration/gke_deploy.sh`
+1. Install Docker: https://docs.docker.com/engine/installation/
+2. Install Google Cloud SDK (gcloud): https://cloud.google.com/sdk/downloads
+3. Run `gcloud init`
+4. Run `orchestration/gke_deploy.sh`
 
 ####Key file descriptions
 1. **vid_moderator.py**  
@@ -17,4 +18,4 @@ A webserver with a simple html form front end that wraps vid_moderator.py. Video
 through the form are handed off to vid_moderator.py for asyncronous non-blocking processing. You can also
 submit processing requests API style with an HTTP GET request.
 3. **orchestration/Dockerfile**   
-Instructions for containerizing the application.
+Instructions for containerizing the application
