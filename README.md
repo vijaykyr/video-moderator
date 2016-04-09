@@ -7,7 +7,8 @@ for moderation.
 ####How to deploy on Google Container Engine (GKE)
 1. Install Docker. You will need this to build the docker image
 2. Edit orchestration/gke_deploy.sh to reference your GCP project
-3. ```bash
+3. 
+```bash
 orchestration/gke_deploy.sh
 ```
 
