@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+#change working directory to current directory
+cd "$(dirname "$0")"
+
 #grab project name
 PROJECT=$(gcloud config list | grep project | cut -d ' ' -f3)
 
