@@ -40,7 +40,7 @@ express.post('/', upload.single('video_file'), function (req, res) {
 });
 
 //listen
-express.listen(8081, function () {
-  console.log('Server running on port 8081');
+express.listen(80, function () {
+  console.log('Express server running on port 80');
 });
 

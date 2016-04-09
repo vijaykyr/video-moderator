@@ -15,7 +15,9 @@ through the form are handed off to vid_moderator.py for asyncronous non-blocking
 submit processing requests API style with an HTTP GET request.
 
 ####How to deploy on Google Container Engine (GKE)
-Note: Replace all references to 'PROJECT_ID' with your project ID before running commands
+1. Install Docker. You will need this to build the docker image
+2. Edit orchestration/gke_deploy.sh to reference your GCP project
+3. Run orchestration/gke_deploy.sh
 
 ####Part 1: Build Docker image and push to Google Container Registry (GCR)
 1. Build docker image. Run from command the same directory that contains the Dockerfile

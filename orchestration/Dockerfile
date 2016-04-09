@@ -19,7 +19,7 @@ RUN git clone https://github.com/vijaykyr/video-moderator.git /video_moderator
 WORKDIR /video_moderator
 
 #Expose private port inside container (bind to public port N using 'docker run -p N:8081')
-EXPOSE 8081
+EXPOSE 80
 #Start web server
 CMD ["node", "express_server.js"]
 
