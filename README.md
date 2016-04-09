@@ -10,7 +10,7 @@ for moderation.
 3. Run `gcloud init`
 4. Run `orchestration/gke_deploy.sh`
 
-####Key file descriptions
+####File descriptions
 1. **vid_moderator.py**  
 The main processing script that does the video extraction and interacts with the Google APIs (Vision and GCS)
 2. **express_server.js**   
