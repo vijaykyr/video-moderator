@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #build image
-docker build -t gcr.io/vijays-sandbox/video-moderator:latest .
+docker build -t gcr.io/vijays-sandbox/video-moderator:latest ..
 
 #push to gcr
 gcloud docker push gcr.io/vijays-sandbox/video-moderator:latest

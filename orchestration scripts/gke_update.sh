@@ -4,7 +4,7 @@
 # ./gke_update.sh version_number
 
 #update image
-docker build -t gcr.io/vijays-sandbox/video-moderator:$1 .
+docker build -t gcr.io/vijays-sandbox/video-moderator:$1 ..
 
 #push to gcr
 gcloud docker push gcr.io/vijays-sandbox/video-moderator:$1
