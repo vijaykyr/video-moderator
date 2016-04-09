@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #grab project name
-PROJECT = gcloud config list | grep project | cut -d ' ' -f3
+PROJECT=$(gcloud config list | grep project | cut -d ' ' -f3)
 
 #build image
 docker build -t gcr.io/$PROJECT/video-moderator:latest .

@@ -2,7 +2,7 @@
 #Usage: ./gke_update.sh version_number
 
 #grab project name
-PROJECT = gcloud config list | grep project | cut -d ' ' -f3
+PROJECT=$(gcloud config list | grep project | cut -d ' ' -f3)
 
 #update image
 docker build -t gcr.io/$PROJECT/video-moderator:$1 .

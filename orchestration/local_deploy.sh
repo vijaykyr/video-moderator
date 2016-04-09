@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#delete old container
+#delete old container (if applicable)
 docker rm -f video_moderator
 #build image
 docker build -t gcr.io/vijays-sandbox/video-moderator:latest .
