@@ -4,15 +4,16 @@ FROM node:4.4.2-slim
 # Install APT packages
 RUN apt-get update && apt-get install -y \
     python2.7 \
-    python-pip
+    python-pip \
+    git
 
-RUN apt-get install --fix-missing -y python-opencv
+RUN apt-get install --ignore-missing -y python-opencv
 
 # Install Google API python client
 RUN pip install --upgrade google-api-python-client
 
-#Copy local resources (todo: change to github)
-COPY . /video_moderator
+#Download app code
+RUN git clone https://github.com/vijaykyr/video-moderator.git /video_moderator
 
 #Change working directory
 WORKDIR /video_moderator
