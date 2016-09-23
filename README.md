@@ -7,8 +7,9 @@ for moderation.
 ####Instructions to deploy to Google Container Engine (GKE)
 1. Install Docker: https://docs.docker.com/engine/installation/
 2. Install Google Cloud SDK (gcloud): https://cloud.google.com/sdk/downloads
-3. Run `gcloud init`
-4. Run `orchestration/gke_deploy.sh`
+3. Run `gcloud components install kubectl`
+4. Run `gcloud init`
+5. Run `orchestration/gke_deploy.sh`
 
 ####File descriptions
 1. **vid_moderator.py**  
